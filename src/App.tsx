@@ -6,11 +6,12 @@ import { useEffect, useState } from "react";
 import "./App.css";
 import RPC from "./evm";
 
-const clientId = "YOUR_CLIENT_ID"; // get from https://dashboard.web3auth.io
+const clientId = "BGV4-kQPMPcy8kEQbVfLt06Wy_lhHuUc8kwYghw9xOPLktP69uYsXKq6tK17B0YE7sVeau57-LkWoqb-kaeJK3I"; // get from https://dashboard.web3auth.io
 
 function App() {
   const [web3auth, setWeb3auth] = useState<Web3Auth | null>(null);
   const [provider, setProvider] = useState<SafeEventEmitterProvider | null>(null);
+  const [torusWalletPrivider, setTorusWalletPrivider] = useState<any>(null);
 
   useEffect(() => {
     const init = async () => {
@@ -40,7 +41,7 @@ function App() {
           torusWalletOpts: {},
           walletInitOptions: {
             whiteLabel: {
-              theme: { isDark: true, colors: { primary: "#00a8ff" } },
+              theme: { isDark: false, colors: { primary: "#00a8ff" } },
               logoDark: "https://cryptologos.cc/logos/ethereum-eth-logo.png",
               logoLight: "https://cryptologos.cc/logos/ethereum-eth-logo.png",
             },
@@ -50,7 +51,7 @@ function App() {
         });
         web3auth.addPlugin(torusPlugin);
 
-        subscribeAuthEvents(web3auth);
+        subscribeAuthEvents(web3auth, torusPlugin);
         setWeb3auth(web3auth);
         await web3auth.initModal();
       } catch (error) {
@@ -58,11 +59,16 @@ function App() {
       }
     }
 
-    const subscribeAuthEvents = (web3auth: Web3Auth) => {
+    const subscribeAuthEvents = (web3auth: Web3Auth, torusPlugin?: TorusWalletConnectorPlugin) => {
       // Can subscribe to all ADAPTER_EVENTS and LOGIN_MODAL_EVENTS
       web3auth.on(ADAPTER_EVENTS.CONNECTED, (data: unknown) => {
         console.log("Yeah!, you are successfully logged in", data);
-        setProvider(web3auth.provider);
+        let web3authProvider = web3auth.provider as SafeEventEmitterProvider;
+
+        if (web3authProvider) {
+          setProvider(web3authProvider)
+          setTorusWalletPrivider(torusPlugin?.torusWalletInstance.ethereum);
+        }
       });
   
       web3auth.on(ADAPTER_EVENTS.CONNECTING, () => {
@@ -135,8 +141,9 @@ function App() {
       console.log("provider not initialized yet");
       return;
     }
-    const rpc = new RPC(provider);
-    const result = await rpc.signMessage();
+    const rpc = new RPC(torusWalletPrivider);
+    // const result = await rpc.signMessage();
+    const result = await rpc.evmSignData(true);
     uiConsole(result);
   };
 
