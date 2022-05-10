@@ -19,7 +19,7 @@ function App() {
           clientId,
           chainConfig: { 
             chainNamespace: CHAIN_NAMESPACES.EIP155, 
-            chainId: "0x1",
+            chainId: "0x5",
             rpcTarget: "https://goerli.infura.io/v3/5abea0fbee444012b28c18a783050f2f", 
           },
         };
